@@ -1,6 +1,8 @@
 
 var renderer, scene, camera, controls, solarSystem;
 
+var AsteroidTexture, AsteroidMaterial, asteroidGeometry, planetGeometry;
+
 var duration = 5000; // ms
 var currentTime = Date.now();
 
@@ -76,16 +78,16 @@ function rotateFromParent(orbit, angle) {
 function createPlanet(planetConf) {
   var texture = new THREE.TextureLoader().load(planetConf.textureUrl);
   var material = new THREE.MeshPhongMaterial({ map: texture });
-  var geometry = new THREE.SphereGeometry(planetConf.scale, 20, 20);
-  var planet = new THREE.Mesh(geometry, material);
+  var planet = new THREE.Mesh(planetGeometry, material);
+  planet.scale.set(planetConf.scale,planetConf.scale,planetConf.scale);
   return planet;
 }
 
 function createMoon(planetConf) {
   var texture = new THREE.TextureLoader().load(planetConf.textureUrl);
   var material = new THREE.MeshPhongMaterial({ map: texture });
-  var geometry = new THREE.SphereGeometry(planetConf.scale, 4, 4);
-  var planet = new THREE.Mesh(geometry, material);
+  var planet = new THREE.Mesh(planetGeometry, material);
+  planet.scale.set(0.02,0.02,0.02);
   return planet;
 }
 
@@ -129,6 +131,8 @@ function createScene(canvas)
 function setUpPlanets() {
   // Create a group for the whole System
   solarSystem = new THREE.Object3D;
+  // Geometry of planets
+  planetGeometry = new THREE.SphereGeometry(1, 20, 20);
   // Set Up Sun
   var sun = createPlanet({
     textureUrl:"textures/2k_sun.jpg",
@@ -214,7 +218,7 @@ function setUpPlanets() {
   saturn.position.set(0, 0, 100);
   // Add saturn ring
   var texture = new THREE.TextureLoader().load("textures/2k_saturn_ring_alpha.png");
-  var ring = new THREE.Mesh(new THREE.RingGeometry(6, 10, 50), new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide}));
+  var ring = new THREE.Mesh(new THREE.RingGeometry(1.25, 2, 50), new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide}));
   ring.material.emissive = new THREE.Color( 0xffffff );
   ring.material.emissiveIntensity = 0.2;
   ring.rotation.set(27, 0, 0);
@@ -242,9 +246,11 @@ function setUpPlanets() {
     solarSystem.children[i].children[0].box = new THREE.Box3().setFromObject( solarSystem.children[i].children[0] ).getSize().z;
   }
   moon.box = new THREE.Box3().setFromObject( moon ).getSize().z;
-
+  AsteroidTexture = new THREE.TextureLoader().load("textures/Asteroid.jpg");
+  AsteroidMaterial = new THREE.MeshPhongMaterial({ map: texture });
+  asteroidGeometry = new THREE.SphereGeometry(0.02, 2, 2);
   // Create asteroids belt
-  for (var i = 0; i < 100; i++) {
+  for (var i = 0; i < 500; i++) {
     createAsteroid(sun);
   }
   // ASTEROID LOADING FROM OBJ IS COMMENTED BECAUSE IS TOO MUCH GEOMETRY FOR SOLAR SYSTEM MODEL
@@ -285,23 +291,23 @@ function ( xhr ) { console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
 function ( error ) { console.log( 'An error happened' ); } );*/
 // Create random Moons
 // Mars 2
-createRandomMoon(mars, 0.4, 4);
-createRandomMoon(mars, 0.3, 4);
+createRandomMoon(mars, 0.1, 1);
+createRandomMoon(mars, 0.1, 1);
 //Jupiter 79
 for (var i = 0; i < 79; i++) {
-  createRandomMoon(jupiter, 0.3, 7);
+  createRandomMoon(jupiter, 0.1, 1.2);
 }
 // Saturn 62
 for (var i = 0; i < 62; i++) {
-  createRandomMoon(saturn, 0.3, 6);
+  createRandomMoon(saturn, 0.1, 1.2);
 }
 // Uranus 27
 for (var i = 0; i < 27; i++) {
-  createRandomMoon(uranus, 0.3, 3);
+  createRandomMoon(uranus, 0.1, 1.5);
 }
 // Neptune 14
 for (var i = 0; i < 14; i++) {
-  createRandomMoon(neptune, 0.3, 3);
+  createRandomMoon(neptune, 0.1, 1.5);
 }
 // Add whole system to the scene
 scene.add( solarSystem );
@@ -315,7 +321,7 @@ function createRandomMoon(planet, size, minRange) {
   });
   planet.add(moonOrbit);
   moonOrbit.add(moon);
-  var r = Math.floor((Math.random() * 2)) + minRange;
+  var r = Math.floor((Math.random())) + minRange;
   var t = Math.random() * Math.PI * 2;
   var p = Math.random() * Math.PI / 2;
   if(Math.random() > 0.5){
@@ -329,12 +335,9 @@ function createRandomMoon(planet, size, minRange) {
 }
 
 function createAsteroid(parent) {
-  var texture = new THREE.TextureLoader().load("textures/Asteroid.jpg");
-  var material = new THREE.MeshPhongMaterial({ map: texture });
-  var geometry = new THREE.SphereGeometry(0.2, 2, 2);
-  var asteroid = new THREE.Mesh(geometry, material);
+  var asteroid = new THREE.Mesh(asteroidGeometry, AsteroidMaterial);
   parent.add(asteroid);
-  var r = Math.floor((Math.random() * 7)) + 62;
+  var r = 6 + Math.random();
   var t = Math.random() * Math.PI * 2;
   var p = 0;
   var x = r * Math.cos(t) * Math.cos(p);
