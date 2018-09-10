@@ -24,6 +24,12 @@ function animate()
   // Earth moon
   rotateOwnAxis(solarSystem.children[4].children[0].children[0].children[0], angle);
   rotateFromParent(solarSystem.children[4].children[0].children[0], angle);
+  // Random Moons
+  // Mars
+  //rotateMoon(solarSystem.children[5].children[0].children[0]);
+  //for (var moon in solarSystem.children[6].children[0].children) {
+    //rotateMoon(moon, angle);
+  //}
 }
 
 function run() {
@@ -33,6 +39,10 @@ function run() {
   renderer.render( scene, camera );
   // Spin the cube for next frame
   animate();
+}
+
+function rotateMoon(orbit, angle) {
+  orbit.rotation.y += angle;
 }
 
 function rotateOwnAxis(planet, angle) {
@@ -47,6 +57,14 @@ function createPlanet(planetConf) {
   var texture = new THREE.TextureLoader().load(planetConf.textureUrl);
   var material = new THREE.MeshPhongMaterial({ map: texture });
   var geometry = new THREE.SphereGeometry(planetConf.scale, 20, 20);
+  var planet = new THREE.Mesh(geometry, material);
+  return planet;
+}
+
+function createMoon(planetConf) {
+  var texture = new THREE.TextureLoader().load(planetConf.textureUrl);
+  var material = new THREE.MeshPhongMaterial({ map: texture });
+  var geometry = new THREE.SphereGeometry(planetConf.scale, 4, 4);
   var planet = new THREE.Mesh(geometry, material);
   return planet;
 }
@@ -102,7 +120,7 @@ function setUpPlanets() {
   solarSystem.add(light);
   // Add light to sun
   sun.add(new THREE.AmbientLight( 0x404040, 0.5 )); // Orange own light
-  sun.material.emissive = new THREE.Color( 0xc98e00 );;
+  sun.material.emissive = new THREE.Color( 0xc98e00 );
   sun.material.emissiveIntensity = 1;
   // Add sun to solarSystem
   solarSystem.add(sun);
@@ -145,13 +163,12 @@ function setUpPlanets() {
   earthOrbit.add(earth);
   earth.position.set(0, 0, 40);
   // Add moon to earth
-  var moonOrbit = createOrbit(100, 5, 0, 0);
+  var moonOrbit = new THREE.Object3D;
   var moon = createPlanet({
     textureUrl:"textures/2k_moon.jpg",
     scale: 1
   });
   moonOrbit.add(moon);
-  moonOrbit.material.transparent = true;
   moon.position.set(0, 0, 5);
   earth.add(moonOrbit);
   var mars = createPlanet({
@@ -172,6 +189,13 @@ function setUpPlanets() {
   });
   saturnOrbit.add(saturn);
   saturn.position.set(0, 0, 100);
+  // Add saturn ring
+  var texture = new THREE.TextureLoader().load("textures/2k_saturn_ring_alpha.png");
+  var ring = new THREE.Mesh(new THREE.RingGeometry(6, 10, 50), new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide}));
+  ring.material.emissive = new THREE.Color( 0xffffff );
+  ring.material.emissiveIntensity = 0.2;
+  ring.rotation.set(27, 0, 0);
+  saturn.add(ring);
   var uranus = createPlanet({
     textureUrl:"textures/2k_uranus.jpg",
     scale: 2
@@ -190,13 +214,58 @@ function setUpPlanets() {
   });
   plutoOrbit.add(pluto);
   pluto.position.set(0, 0, 150);
-  // Add whole system to the scene
-  scene.add( solarSystem );
+  // Boxes to determine objects sizes
   for (var i = 2; i <= 10; i++) {
     solarSystem.children[i].children[0].box = new THREE.Box3().setFromObject( solarSystem.children[i].children[0] ).getSize().z;
   }
   moon.box = new THREE.Box3().setFromObject( moon ).getSize().z;
-  console.log(solarSystem.children[2]);
+  // Create random Moons
+  // Mars 2
+  createRandomMoon(mars, 0.4, 4);
+  createRandomMoon(mars, 0.3, 4);
+  //Jupiter 79
+  for (var i = 0; i < 79; i++) {
+    createRandomMoon(jupiter, 0.3, 7);
+  }
+  // Saturn 62
+  for (var i = 0; i < 62; i++) {
+    createRandomMoon(saturn, 0.3, 6);
+  }
+  // Uranus 27
+  for (var i = 0; i < 27; i++) {
+    createRandomMoon(uranus, 0.3, 3);
+  }
+  // Neptune 14
+  for (var i = 0; i < 14; i++) {
+    createRandomMoon(neptune, 0.3, 3);
+  }
+  // Add whole system to the scene
+  console.log(solarSystem);
+  scene.add( solarSystem );
+}
+
+function createRandomMoon(planet, size, minRange) {
+  var moonOrbit = new THREE.Object3D;
+  var moon = createMoon({
+    textureUrl:"textures/2k_makemake_fictional.jpg",
+    scale: size
+  });
+  planet.add(moonOrbit);
+  moonOrbit.add(moon);
+  var r = Math.floor((Math.random() * 2)) + minRange;
+  var t = Math.random() * Math.PI * 2;
+  var p = Math.random() * Math.PI / 2;
+  if(Math.random() > 0.5){
+    p = -p;
+  }
+  var x = r * Math.cos(t) * Math.cos(p);
+  var y = r * Math.sin(p);
+  var z = r * Math.sin(t) * Math.cos(p);
+  moon.position.set(x, y, z);
+}
+
+function createAsteroid() {
+
 }
 
 function createOrbit(definition, radius, x , y) {
