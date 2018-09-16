@@ -250,7 +250,7 @@ function setUpPlanets() {
   AsteroidMaterial = new THREE.MeshPhongMaterial({ map: texture });
   asteroidGeometry = new THREE.SphereGeometry(0.02, 2, 2);
   // Create asteroids belt
-  for (var i = 0; i < 500; i++) {
+  for (var i = 0; i < 100; i++) {
     createAsteroid(sun);
   }
   // ASTEROID LOADING FROM OBJ IS COMMENTED BECAUSE IS TOO MUCH GEOMETRY FOR SOLAR SYSTEM MODEL
